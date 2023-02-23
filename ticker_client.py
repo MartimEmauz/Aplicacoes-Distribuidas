@@ -20,7 +20,7 @@ Dúvidas:
 É preciso dar encode ao comando?
 """
 
-#definição de constantes
+# Definição de constantes
 client_id = sys.argv[0]
 HOST = sys.argv[2]
 PORT = sys.argv[3]
