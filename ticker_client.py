@@ -21,9 +21,9 @@ Dúvidas:
 """
 
 # Definição de constantes
-client_id = sys.argv[0]
+client_id = sys.argv[1]
 HOST = sys.argv[2]
-PORT = sys.argv[3]
+PORT = int(sys.argv[3])
 
 while True:
 
