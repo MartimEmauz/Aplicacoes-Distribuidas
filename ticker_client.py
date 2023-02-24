@@ -31,13 +31,15 @@ while True:
     comando = comando.split(" ")
 
     if comando[0] == 'SUBSCR':
-        if  len(comando) < 3:
+        if  len(comando) <= 2:
             print("MISSING-ARGUMENTS")
 
         else:
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando.append(client_id)')
+            comando_str = " ".join(comando + [client_id])
+            resposta = connection.send_receive(comando_str.encode())
+            print(resposta)
             connection.close()
 
     elif comando[0] == 'CANCEL':
@@ -47,7 +49,8 @@ while True:
         else:
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando + " " + client_id')
+            comando_str = " ".join(comando + [client_id])
+            resposta = connection.send_receive(comando_str.encode())
             connection.close()
 
     elif comando[0] == 'STATUS':
@@ -57,34 +60,37 @@ while True:
         else:
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando + " " + client_id')
+            comando_str = " ".join(comando + [client_id])
+            resposta = connection.send_receive(comando_str.encode())
             connection.close()
 
     elif comando[:2] == 'INFOS M':
-        if  len(comando) < 3:
+        if  len(comando) <= 2:
             print("MISSING-ARGUMENTS")
 
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando + " " + client_id')
+            comando_str = " ".join(comando + [client_id])
+            resposta = connection.send_receive(comando_str.encode())
             connection.close()
 
     elif comando[:2] == 'INFOS K':
-        if  len(comando) < 3:
+        if  len(comando) <= 2:
             print("MISSING-ARGUMENTS")
 
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando + " " + client_id')
+            comando_str = " ".join(comando + [client_id])
+            resposta = connection.send_receive(comando_str.encode())
             connection.close()
 
     elif comando[:2] == 'STATIS L':
-        if  len(comando) < 3:
+        if  len(comando) <= 2:
             print("MISSING-ARGUMENTS")
 
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando')
+            comando_str = " ".join(comando)
             connection.close()
 
     elif comando[:2] == 'STATIS ALL':
@@ -93,7 +99,8 @@ while True:
 
             connection = server_connection(HOST, PORT)
             connection.connect()
-            resposta = connection.send_receive(b'comando')
+            comando_str = " ".join(comando)
+            resposta = connection.send_receive(comando_str.encode())
             connection.close()
 
     elif comando[0] == 'SLEEP':

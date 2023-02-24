@@ -19,7 +19,9 @@ import string
 
 log = {}
 pool = {}
-time_limits = {}
+
+HOST = sys.argv[1]
+PORT = int(sys.argv[2])
 
 ###############################################################################
 
@@ -29,57 +31,65 @@ class resource:
         self.name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
         self.value = random.uniform(100, 200)
         self.symbol = self.name[0:3]
+        self.pool = pool
 
     def subscribe(self, client_id, time_limit):
-        log[self.resource_id].append(client_id)
-        time_limits[(self.resource_id, client_id)] = time_limit
+        log[self.resource_id].append(int(client_id))
+        self.pool.time_limits[(self.resource_id, int(client_id))] = time.time() + float(time_limit)
 
     def unsubscribe (self, client_id):
-        log[self.resource_id].remove(client_id)
-        del time_limits[(self.resource_id, client_id)]
+        if int(client_id) in log[self.resource_id]:
+            log[self.resource_id].remove(int(client_id))
+            del self.pool.time_limits[(self.resource_id, int(client_id))]
 
     def status(self, client_id):
-        if client_id in log[self.resource_id]:
-            return "SUBSCRIBED"
-        return "UNSUBSCRIBED"
+        if int(client_id) in log[self.resource_id]:
+            return ("SUBSCRIBED")
+        else:
+            return ("UNSUBSCRIBED")
+        
    
     def __repr__(self):
         output = ""
-        output = output + "R" + self.resource_id + sorted(log[self.resource_id], key = lambda x: x[1]) + "/n"
+        output += "R", self.resource_id, sorted(log[self.resource_id], key = lambda x: x[1]), "\n"
         return output
 
 ###############################################################################
 
 class resource_pool:
     def __init__(self, N, K, M):
-        self.N = sys.argv[4] #alterar isto, são os argumentos recebidos do cliente
-        self.K = sys.argv[3]
-        self.M = sys.argv[2]
+        self.N = int(sys.argv[5])
+        self.K = int(sys.argv[4])
+        self.M = int(sys.argv[3])
+        self.resources = []
+        self.time_limits = {}
 
-        for i in range(self.M):
-            self.add_resource(i)
+        for resource in range(self.M):
+            self.add_resource(resource)
 
     def add_resource(self, resource_id):
         if resource_id not in pool:
             pool[resource_id] = resource(resource_id)
             log[resource_id] = []
+            self.resources.append(resource_id)
 
     def clear_expired_subs(self):
-        for resource_id, subs in log.items():
-            for i in range(len(subs)):
-                client_id, limit = subs[i]
-                if time.time() > limit:
-                    pool[resource_id].unsubscribe(client_id)
-                    log[resource_id].pop(i)
-
+        now = time.time()
+        expired_keys = []
+        for (resource_id, client_id), time_limit in self.time_limits.items():
+            if now > float(time_limit):
+                expired_keys.append((resource_id, client_id))
+        for key in expired_keys:
+            del self.time_limits[key]
+        
 
     def subscribe(self, resource_id, client_id, time_limit):
-        if resource_id not in pool:
+        if resource_id not in self.resources:
             return "UNKNOWN-RESOURCE"
 
-        for cliente in log.values():         #se for atingido o limite de subscrições pelo cliente, NOK
-            counter = 0
-            if cliente == client_id:
+        counter = 0
+        for client in log.values():         #se for atingido o limite de subscrições pelo cliente, NOK
+            if client == client_id:
                 counter += 1
             if counter == self.K:
                 return "NOK"
@@ -87,52 +97,54 @@ class resource_pool:
         if len(log[resource_id]) == self.N:        #se for atingido o limite de subscrições por recurso, NOK
             return "NOK"
 
-        if client_id in log[resource_id]:       #se o cliente já estiver subscrito, atualizar o time limit
-            time_limits[(resource_id, client_id)] = time_limit
+        if client_id in log[resource_id]:       #se o cliente já estiver subscrito, atualizar o time limit ! N FUNCIONA
+            self.time_limits[(resource_id, client_id)] = time_limit
             return "OK"
 
-        pool[resource_id].subscribe(client_id, time_limit)
+        
+        resource(resource_id).subscribe(client_id, time_limit)
         return "OK"
 
     def unsubscribe (self, resource_id, client_id):
-        if resource_id not in pool:
+        if resource_id not in self.resources:
             return "UNKNOWN-RESOURCE"
         
-        if pool[resource_id].status(client_id) == "UNSUBSCRIBED":
+        if resource(resource_id).status(client_id) == "UNSUBSCRIBED":
             return "NOK"
 
-        pool[resource_id].unsubscribe(client_id)
-        return "OK"        
+        return "OK" 
+        resource(resource_id).unsubscribe(client_id)
+               
 
     def status(self, resource_id, client_id):
-        if resource_id not in pool:
+        if resource_id not in self.resources:
             return "UNKNOWN-RESOURCE"
-        return pool[resource_id].status(client_id)
+        return resource(resource_id).status(client_id)
 
     def infos(self, option, client_id):
-        subscritas = []
+        subscribed = []
         for i in range(self.M):
             if client_id in log[i]:
-                subscritas.append(i)
+                subscribed.append(i)
 
         if option == "M":
-                return subscritas
+                return subscribed
 
         if option == "K":
-            return self.K - len(subscritas)            
+            return self.K - len(subscribed)            
 
 
     def statis(self, option, resource_id):
-        subscritores = []
+        subscribers = []
         for i in range(self.M):
             if resource_id in log[i]:
-                subscritores.append(i)
-        subscritores = subscritores.sort()
+                subscribers.append(i)
+        subscribers = subscribers.sorted()
 
-        n_subscritores = len(subscritores)
+        n_subscribers = len(subscribers)
 
         if option == "L":
-            return n_subscritores
+            return n_subscribers
 
         if option == "ALL":
             return self.__repr__()
@@ -147,3 +159,62 @@ class resource_pool:
 ###############################################################################
 
 # código do programa principal
+
+sock = utils.create_tcp_server_socket(HOST, PORT, 1000)
+pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))
+
+try:
+    while True:
+        pool.clear_expired_subs()
+        (conn_sock, (HOST, PORT)) = sock.accept()
+
+        print('Ligado a %s no porto %s' % (HOST,PORT), "\n")
+
+        received = conn_sock.recv(1024).decode()
+        received = received.split(" ")
+
+        if received[0] == "SUBSCR": #está a funcionar
+            arguments = received[1:]
+            resource_id, client_id, time_limit = arguments
+            send = pool.subscribe(int(resource_id), float(time_limit), client_id)
+            conn_sock.send(send.encode())
+
+        if received[0] == "CANCEL":
+            arguments = received[1:]
+            resource_id, client_id = arguments
+            send = pool.unsubscribe(int(resource_id), client_id)
+            conn_sock.send(send.encode())
+
+        if received[0] == "STATUS":
+            arguments = received[1:]
+            resource_id, client_id = arguments
+            send = pool.status(int(resource_id), client_id)
+            print(send) #para testes
+            conn_sock.send(send.encode()) #send não funciona, não percebo porquê
+
+        if received[0] == "INFOS":
+            if received[1] == "M":
+                send = pool.infos("M", received[2])
+                conn_sock.send(send.encode())
+
+            if received[1] == "K":
+                send = pool.infos("K", received[2])
+                conn_sock.send(send.encode())
+
+        if received[0] == "STATIS":
+            if received[1] == "L":
+                send = pool.statis("L", int(received[2]))
+                conn_sock.send(send.encode())
+
+            if received[1] == "ALL":
+                send = pool.statis("ALL", int(received[2]))
+                conn_sock.send(send.encode())
+
+
+finally:
+    sock.close()
+
+#problemas:
+#1. não consigo enviar o send para o cliente, não percebo porquê
+#2 o ultimo if do unsubscribe não funciona, não percebo porquê
+#3. os comando STATIS não funcionam ainda
