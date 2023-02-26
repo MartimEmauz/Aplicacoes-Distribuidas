@@ -34,7 +34,8 @@ class resource:
         self.pool = pool
 
     def subscribe(self, client_id, time_limit):
-        log[self.resource_id].append(int(client_id))
+        if int(client_id) not in log[self.resource_id]:
+            log[self.resource_id].append(int(client_id))
         self.pool.time_limits[(self.resource_id, int(client_id))] = time.time() + float(time_limit)
 
     def unsubscribe (self, client_id):
@@ -57,10 +58,10 @@ class resource:
 ###############################################################################
 
 class resource_pool:
-    def __init__(self, N, K, M):
-        self.N = N
-        self.K = K
+    def __init__(self, M, K, N):
         self.M = M
+        self.K = K
+        self.N = N
         self.resources = []
         self.time_limits = {}
 
@@ -74,13 +75,11 @@ class resource_pool:
             self.resources.append(resource_id)
 
     def clear_expired_subs(self):
-        expired_keys = []
-        for (resource_id, client_id), time_limit in self.time_limits.items():
-            if time.time() > float(time_limit):
-                expired_keys.append((resource_id, client_id))
-        for key in expired_keys:
-            del self.time_limits[key]
-            resource(key[0]).unsubscribe(key[1])
+        for resource_id in self.resources:
+            for client_id in log[resource_id]:
+                if time.time() > self.time_limits[(resource_id, client_id)]:
+                    resource(resource_id).unsubscribe(client_id)
+                
         
 
     def subscribe(self, resource_id, client_id, time_limit):
@@ -92,7 +91,8 @@ class resource_pool:
         
         counter = 0
         for client in log.values():         #se for atingido o limite de subscrições pelo cliente, NOK
-            if client == int(client_id):
+            if client_id in client:
+                print("entrou no if")
                 counter += 1
             if counter >= self.K:
                 return "NOK"
@@ -139,14 +139,19 @@ class resource_pool:
     def statis(self, option, resource_id):
         subscribers = []
         for i in range(self.M):
-            if resource_id in log[i]:
+            if resource_id in log.keys():
                 subscribers.append(i)
-        subscribers = subscribers.sorted()
+        subscribers = subscribers.sort()
+
+        print(log.keys())
+
+        print(subscribers)
+        print(type(subscribers))
 
         n_subscribers = len(subscribers)
 
         if option == "L":
-            return n_subscribers
+            return str(n_subscribers)
 
         if option == "ALL":
             return self.__repr__()
@@ -163,13 +168,16 @@ class resource_pool:
 # código do programa principal 
 
 sock = utils.create_tcp_server_socket(HOST, PORT, 1000)
-pool = resource_pool(int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
+pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))
+
 
 try:
     while True:
         print("log: ", log)
         print("time_limits: ", pool.time_limits, "\n")
+
         pool.clear_expired_subs()
+
         (conn_sock, (HOST, PORT)) = sock.accept()
 
         print('Ligado a %s no porto %s' % (HOST,PORT), "\n")
@@ -177,6 +185,8 @@ try:
         received = conn_sock.recv(1024).decode()
         received = received.split(" ")
         print("received: ", received)
+
+        
 
         if received[0] == "SUBSCR": #está a funcionar
             arguments = received[1:]
@@ -215,12 +225,10 @@ try:
             if received[1] == "ALL":
                 send = pool.statis("ALL", int(received[2]))
                 conn_sock.send(send.encode())
-
+        
 
 finally:
     sock.close()
 
 #problemas:
-#o tempo não decresce
-#o limite de subscrições por cliente não funciona bem
 #ainda não verifiquei o funcionamento do comando statis

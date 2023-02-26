@@ -85,6 +85,7 @@ while True:
         connection = server_connection(HOST, PORT)
         connection.connect()
         comando_str = " ".join(comando)
+        resposta = connection.send_receive(comando_str.encode())
         connection.close()
 
     elif comando[0] == 'STATIS' and comando[1] == 'ALL':
