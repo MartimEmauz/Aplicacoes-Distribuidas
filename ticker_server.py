@@ -137,21 +137,13 @@ class resource_pool:
 
 
     def statis(self, option, resource_id):
-        subscribers = []
-        for i in range(self.M):
-            if resource_id in log.keys():
-                subscribers.append(i)
-        subscribers = subscribers.sort()
-
-        print(log.keys())
-
-        print(subscribers)
-        print(type(subscribers))
-
-        n_subscribers = len(subscribers)
+        subscribers = 0
+        if resource_id in log.keys():
+            for i in log[resource_id]:
+                subscribers += 1
 
         if option == "L":
-            return str(n_subscribers)
+            return str(subscribers)
 
         if option == "ALL":
             return self.__repr__()
@@ -223,7 +215,7 @@ try:
                 conn_sock.send(send.encode())
 
             if received[1] == "ALL":
-                send = pool.statis("ALL", int(received[2]))
+                send = pool.statis("ALL")
                 conn_sock.send(send.encode())
         
 
