@@ -58,9 +58,9 @@ class resource:
 
 class resource_pool:
     def __init__(self, N, K, M):
-        self.N = int(sys.argv[5])
-        self.K = int(sys.argv[4])
-        self.M = int(sys.argv[3])
+        self.N = N
+        self.K = K
+        self.M = M
         self.resources = []
         self.time_limits = {}
 
@@ -94,15 +94,13 @@ class resource_pool:
         for client in log.values():         #se for atingido o limite de subscrições pelo cliente, NOK
             if client == int(client_id):
                 counter += 1
-            if counter == self.K:
+            if counter >= self.K:
                 return "NOK"
-        print('counter', counter)
-        print('valores' , log.values())
-
+            
         if client_id in log[resource_id]:       #se o cliente já estiver subscrito, atualizar o time limit ! N FUNCIONA
-            self.time_limits[(resource_id, client_id)] = time.time() + float(time_limit)
+            resource(resource_id).subscribe(client_id, time_limit)
+            self.time_limits[(resource_id, client_id)] = time.time() + float(time_limit) #DESNECESSARIO
             return "OK"
-
         
         resource(resource_id).subscribe(client_id, time_limit)
         return "OK"
@@ -135,7 +133,7 @@ class resource_pool:
             return output
 
         if option == "K":
-            return str(self.K - len(subscribed))   
+            return str(self.K - len(subscribed))
 
 
     def statis(self, option, resource_id):
@@ -165,7 +163,7 @@ class resource_pool:
 # código do programa principal 
 
 sock = utils.create_tcp_server_socket(HOST, PORT, 1000)
-pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))
+pool = resource_pool(int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
 
 try:
     while True:
