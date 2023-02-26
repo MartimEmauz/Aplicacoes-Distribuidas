@@ -74,31 +74,33 @@ class resource_pool:
             self.resources.append(resource_id)
 
     def clear_expired_subs(self):
-        now = time.time()
         expired_keys = []
         for (resource_id, client_id), time_limit in self.time_limits.items():
-            if now > float(time_limit):
+            if time.time() > float(time_limit):
                 expired_keys.append((resource_id, client_id))
         for key in expired_keys:
             del self.time_limits[key]
+            resource(key[0]).unsubscribe(key[1])
         
 
     def subscribe(self, resource_id, client_id, time_limit):
         if resource_id not in self.resources:
             return "UNKNOWN-RESOURCE"
 
+        if len(log[resource_id]) == self.N:        #se for atingido o limite de subscrições por recurso, NOK
+            return "NOK"
+        
         counter = 0
         for client in log.values():         #se for atingido o limite de subscrições pelo cliente, NOK
-            if client == client_id:
+            if client == int(client_id):
                 counter += 1
             if counter == self.K:
                 return "NOK"
-
-        if len(log[resource_id]) == self.N:        #se for atingido o limite de subscrições por recurso, NOK
-            return "NOK"
+        print('counter', counter)
+        print('valores' , log.values())
 
         if client_id in log[resource_id]:       #se o cliente já estiver subscrito, atualizar o time limit ! N FUNCIONA
-            self.time_limits[(resource_id, client_id)] = time_limit
+            self.time_limits[(resource_id, client_id)] = time.time() + float(time_limit)
             return "OK"
 
         
@@ -112,8 +114,9 @@ class resource_pool:
         if resource(resource_id).status(client_id) == "UNSUBSCRIBED":
             return "NOK"
 
-        return "OK" 
         resource(resource_id).unsubscribe(client_id)
+        return "OK"
+        
                
 
     def status(self, resource_id, client_id):
@@ -124,14 +127,15 @@ class resource_pool:
     def infos(self, option, client_id):
         subscribed = []
         for i in range(self.M):
-            if client_id in log[i]:
+            if int(client_id) in log[i]:
                 subscribed.append(i)
 
         if option == "M":
-                return subscribed
+            output = ' '.join([str(sub) for sub in subscribed])
+            return output
 
         if option == "K":
-            return self.K - len(subscribed)            
+            return str(self.K - len(subscribed))   
 
 
     def statis(self, option, resource_id):
@@ -158,13 +162,15 @@ class resource_pool:
 
 ###############################################################################
 
-# código do programa principal
+# código do programa principal 
 
 sock = utils.create_tcp_server_socket(HOST, PORT, 1000)
 pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))
 
 try:
     while True:
+        print("log: ", log)
+        print("time_limits: ", pool.time_limits, "\n")
         pool.clear_expired_subs()
         (conn_sock, (HOST, PORT)) = sock.accept()
 
@@ -172,6 +178,7 @@ try:
 
         received = conn_sock.recv(1024).decode()
         received = received.split(" ")
+        print("received: ", received)
 
         if received[0] == "SUBSCR": #está a funcionar
             arguments = received[1:]
@@ -189,12 +196,13 @@ try:
             arguments = received[1:]
             resource_id, client_id = arguments
             send = pool.status(int(resource_id), client_id)
-            print(send) #para testes
-            conn_sock.send(send.encode()) #send não funciona, não percebo porquê
+            conn_sock.send(send.encode())
 
         if received[0] == "INFOS":
             if received[1] == "M":
+                print("entrou no M")
                 send = pool.infos("M", received[2])
+                print(send)
                 conn_sock.send(send.encode())
 
             if received[1] == "K":
@@ -215,6 +223,6 @@ finally:
     sock.close()
 
 #problemas:
-#1. não consigo enviar o send para o cliente, não percebo porquê
-#2 o ultimo if do unsubscribe não funciona, não percebo porquê
-#3. os comando STATIS não funcionam ainda
+#o tempo não decresce
+#o limite de subscrições por cliente não funciona bem
+#ainda não verifiquei o funcionamento do comando statis

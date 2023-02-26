@@ -23,6 +23,7 @@ class server_connection:
         """
         self.address = address
         self.port = port
+        self.sock = None
         
     def connect(self):
         """
@@ -33,12 +34,12 @@ class server_connection:
 
     def send_receive(self, data):
         """
-        Envia os dados contidos em data para a socket da ligação, e retorna
+        Envia os dados contidos em data para a socket da ligação, e imprime
         a resposta recebida pela mesma socket.
         """
         self.sock.sendall(data)
         resposta = self.sock.recv(1024)
-        return resposta.decode()
+        print(resposta.decode())
     
     def close(self):
         """

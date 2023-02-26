@@ -15,11 +15,6 @@ import time
 
 # Programa principal
 
-"""
-Dúvidas:
-É preciso dar encode ao comando?
-"""
-
 # Definição de constantes
 client_id = sys.argv[1]
 HOST = sys.argv[2]
@@ -38,8 +33,7 @@ while True:
             connection = server_connection(HOST, PORT)
             connection.connect()
             comando_str = " ".join(comando + [client_id])
-            resposta = connection.send_receive(comando_str.encode())
-            print(resposta)
+            connection.send_receive(comando_str.encode())
             connection.close()
 
     elif comando[0] == 'CANCEL':
@@ -64,44 +58,44 @@ while True:
             resposta = connection.send_receive(comando_str.encode())
             connection.close()
 
-    elif comando[:2] == 'INFOS M':
-        if  len(comando) <= 2:
-            print("MISSING-ARGUMENTS")
-
-            connection = server_connection(HOST, PORT)
-            connection.connect()
-            comando_str = " ".join(comando + [client_id])
-            resposta = connection.send_receive(comando_str.encode())
-            connection.close()
-
-    elif comando[:2] == 'INFOS K':
-        if  len(comando) <= 2:
-            print("MISSING-ARGUMENTS")
-
-            connection = server_connection(HOST, PORT)
-            connection.connect()
-            comando_str = " ".join(comando + [client_id])
-            resposta = connection.send_receive(comando_str.encode())
-            connection.close()
-
-    elif comando[:2] == 'STATIS L':
-        if  len(comando) <= 2:
-            print("MISSING-ARGUMENTS")
-
-            connection = server_connection(HOST, PORT)
-            connection.connect()
-            comando_str = " ".join(comando)
-            connection.close()
-
-    elif comando[:2] == 'STATIS ALL':
+    elif comando[0] == 'INFOS' and comando[1] == 'M':
         if  len(comando) < 2:
             print("MISSING-ARGUMENTS")
 
-            connection = server_connection(HOST, PORT)
-            connection.connect()
-            comando_str = " ".join(comando)
-            resposta = connection.send_receive(comando_str.encode())
-            connection.close()
+        connection = server_connection(HOST, PORT)
+        connection.connect()
+        comando_str = " ".join(comando + [client_id])
+        resposta = connection.send_receive(comando_str.encode())
+        connection.close()
+
+    elif comando[0] == 'INFOS' and comando[1] == 'K':
+        if  len(comando) < 2:
+            print("MISSING-ARGUMENTS")
+
+        connection = server_connection(HOST, PORT)
+        connection.connect()
+        comando_str = " ".join(comando + [client_id])
+        resposta = connection.send_receive(comando_str.encode())
+        connection.close()
+
+    elif comando[0] == 'STATIS' and comando[1] == 'L':
+        if  len(comando) <= 2:
+            print("MISSING-ARGUMENTS")
+
+        connection = server_connection(HOST, PORT)
+        connection.connect()
+        comando_str = " ".join(comando)
+        connection.close()
+
+    elif comando[0] == 'STATIS' and comando[1] == 'ALL':
+        if  len(comando) < 2:
+            print("MISSING-ARGUMENTS")
+
+        connection = server_connection(HOST, PORT)
+        connection.connect()
+        comando_str = " ".join(comando)
+        resposta = connection.send_receive(comando_str.encode())
+        connection.close()
 
     elif comando[0] == 'SLEEP':
         time.sleep(int(comando[1]))
