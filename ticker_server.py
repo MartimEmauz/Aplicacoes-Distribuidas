@@ -136,11 +136,12 @@ class resource_pool:
             return str(self.K - len(subscribed))
 
 
-    def statis(self, option, resource_id):
-        subscribers = 0
-        if resource_id in log.keys():
-            for i in log[resource_id]:
-                subscribers += 1
+    def statis(self, option, resource_id = None):
+        if resource_id != None:
+            subscribers = 0
+            if resource_id in log.keys():
+                for i in log[resource_id]:
+                    subscribers += 1
 
         if option == "L":
             return str(subscribers)
