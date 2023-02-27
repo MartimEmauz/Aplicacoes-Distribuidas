@@ -51,8 +51,9 @@ class resource:
         
    
     def __repr__(self):
-        output = ""
-        output += "R", self.resource_id, sorted(log[self.resource_id], key = lambda x: x[1]), "\n"
+        output = "R " + str(self.resource_id) + " "
+        for client in log[self.resource_id]:
+            output += str(client) + " "
         return output
 
 ###############################################################################
@@ -152,10 +153,10 @@ class resource_pool:
 
     def __repr__(self):
         output = ""
-        for i in range(self.M):
-            output = output + pool[i].__repr__()
+        for rec in self.resources:
+            recurso = resource(rec)
+            output += recurso.__repr__() + "\n"
         return output
-
 ###############################################################################
 
 # código do programa principal 
