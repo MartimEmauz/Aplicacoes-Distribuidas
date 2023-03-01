@@ -17,8 +17,8 @@ import string
 
 # Definição de constantes
 
-log = {}
-pool = {}
+log = {} #dicionario com os IDs dos recursos e os clientes que os subscreveram
+pool = {} #dicionario com os IDs dos recursos e os recursos correspondentes
 
 HOST = sys.argv[1]
 PORT = int(sys.argv[2])
@@ -27,6 +27,18 @@ PORT = int(sys.argv[2])
 
 class resource:
     def __init__(self, resource_id):
+        """Inicializa um recurso.
+
+        Args:
+            resource_id (int): Identificador do recurso.
+
+        Attributes:
+            resource_id (int): Identificador do recurso.
+            name (str): Nome do recurso.
+            value (float): Valor do recurso.
+            symbol (str): Símbolo do recurso.
+            pool (resource_pool): Pool de recursos.
+        """
         self.resource_id = resource_id
         self.name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
         self.value = random.uniform(100, 200)
@@ -34,16 +46,35 @@ class resource:
         self.pool = pool
 
     def subscribe(self, client_id, time_limit):
+        """Subscreve um cliente num recurso.
+
+        Args:
+            client_id (int): Identificador do cliente.
+            time_limit (float): Limite de tempo de subscrição.
+        """
         if int(client_id) not in log[self.resource_id]:
             log[self.resource_id].append(int(client_id))
         self.pool.time_limits[(self.resource_id, int(client_id))] = time.time() + float(time_limit)
 
     def unsubscribe (self, client_id):
+        """Cancela a subscrição de um cliente num recurso.
+    
+        Args:
+            client_id (int): Identificador do cliente.                 
+        """
         if int(client_id) in log[self.resource_id]:
             log[self.resource_id].remove(int(client_id))
             del self.pool.time_limits[(self.resource_id, int(client_id))]
 
     def status(self, client_id):
+        """Verifica se um cliente está subscrito num recurso.
+
+        Args:
+            client_id (int): Identificador do cliente.
+
+        Returns:
+            str: "SUBSCRIBED" se o cliente estiver subscrito, "UNSUBSCRIBED" caso contrário.
+        """
         if int(client_id) in log[self.resource_id]:
             return ("SUBSCRIBED")
         else:
@@ -51,7 +82,13 @@ class resource:
         
    
     def __repr__(self):
+        """Devolve a representação textual de um recurso.
+        
+        Returns:
+            str: Representação textual de um recurso, contendo o seu ID, o número atual de subscritores desse recurso, e a lista de clientes subscritos do recurso.
+        """
         output = "R " + str(self.resource_id) + " "
+        output += str(len(log[self.resource_id])) + " "
         for client in log[self.resource_id]:
             output += str(client) + " "
         return output
@@ -60,6 +97,20 @@ class resource:
 
 class resource_pool:
     def __init__(self, M, K, N):
+        """Inicializa um pool de recursos.
+
+        Args:
+            M (int): Número de recursos.
+            K (int): Número máximo de subscrições por cliente.
+            N (int): Número máximo de subscrições por recurso.
+
+        Attributes:
+            M (int): Número de recursos.
+            K (int): Número máximo de subscrições por cliente.
+            N (int): Número máximo de subscrições por recurso.
+            resources (list): Lista com os IDs dos recursos.
+            time_limits (dict): Dicionário com os limites de tempo das subscrições.
+        """
         self.M = M
         self.K = K
         self.N = N
@@ -70,12 +121,19 @@ class resource_pool:
             self.add_resource(resource)
 
     def add_resource(self, resource_id):
+        """Adiciona um recurso à pool.
+
+        Args:
+            resource_id (int): Identificador do recurso.
+        """
         if resource_id not in pool:
             pool[resource_id] = resource(resource_id)
             log[resource_id] = []
             self.resources.append(resource_id)
 
     def clear_expired_subs(self):
+        """Cancela as subscrições expiradas.
+        """
         for resource_id in self.resources:
             for client_id in log[resource_id]:
                 if time.time() > self.time_limits[(resource_id, client_id)]:
@@ -84,91 +142,137 @@ class resource_pool:
         
 
     def subscribe(self, resource_id, client_id, time_limit):
-        if resource_id not in self.resources:
+        """Subscreve um cliente num recurso.
+
+        Args:
+            resource_id (int): Identificador do recurso.
+            client_id (int): Identificador do cliente.
+            time_limit (float): Limite de tempo de subscrição.
+
+        Returns:
+            str: "OK" se a subscrição for bem sucedida, "NOK" caso contrário.
+        """
+        if resource_id not in self.resources:       #se o recurso não existir, retornar "UNKNOWN-RESOURCE"
             return "UNKNOWN-RESOURCE"
 
-        if len(log[resource_id]) == self.N:        #se for atingido o limite de subscrições por recurso, NOK
+        if len(log[resource_id]) == self.N:       #se for atingido o limite de subscrições por recurso, retornar "NOK"
             return "NOK"
         
         counter = 0
-        for client in log.values():         #se for atingido o limite de subscrições pelo cliente, NOK
+        for client in log.values():
             if client_id in client:
                 print("entrou no if")
                 counter += 1
-            if counter >= self.K:
+            if counter >= self.K:       #se for atingido o limite de subscrições pelo cliente, retornar "NOK"
                 return "NOK"
             
-        if client_id in log[resource_id]:       #se o cliente já estiver subscrito, atualizar o time limit ! N FUNCIONA
+        if client_id in log[resource_id]:       #se o cliente já estiver subscrito, atualizar o time limit e retornar "OK"
             resource(resource_id).subscribe(client_id, time_limit)
-            self.time_limits[(resource_id, client_id)] = time.time() + float(time_limit) #DESNECESSARIO
+            self.time_limits[(resource_id, client_id)] = time.time() + float(time_limit)
             return "OK"
         
         resource(resource_id).subscribe(client_id, time_limit)
         return "OK"
 
     def unsubscribe (self, resource_id, client_id):
-        if resource_id not in self.resources:
+        """Cancela a subscrição de um cliente num recurso.
+
+        Args:
+            resource_id (int): Identificador do recurso.
+            client_id (int): Identificador do cliente.
+
+        Returns:
+            str: "OK" se a subscrição for cancelada, "NOK" caso contrário.
+        """
+        if resource_id not in self.resources:       #se o recurso não existir, retornar "UNKNOWN-RESOURCE"
             return "UNKNOWN-RESOURCE"
         
-        if resource(resource_id).status(client_id) == "UNSUBSCRIBED":
+        if resource(resource_id).status(client_id) == "UNSUBSCRIBED":       #se o cliente não estiver subscrito, retornar "NOK"
             return "NOK"
 
-        resource(resource_id).unsubscribe(client_id)
+        resource(resource_id).unsubscribe(client_id)    #se o cliente estiver subscrito, cancelar a subscrição e retornar "OK"
         return "OK"
-        
-               
-
+                       
     def status(self, resource_id, client_id):
-        if resource_id not in self.resources:
+        """Verifica o estado de subscrição de um cliente num recurso.
+
+        Args:
+            resource_id (int): Identificador do recurso.
+            client_id (int): Identificador do cliente.
+
+        Returns:
+            str: "SUBSCRIBED" se o cliente estiver subscrito, "UNSUBSCRIBED" caso contrário.
+        """
+        if resource_id not in self.resources:       #se o recurso não existir, retornar "UNKNOWN-RESOURCE"
             return "UNKNOWN-RESOURCE"
         return resource(resource_id).status(client_id)
 
     def infos(self, option, client_id):
+        """Devolve informações sobre os recursos subscritos por um cliente.
+
+        Args:
+            option (str): Opção de informação.
+            client_id (int): Identificador do cliente.
+
+        Returns:
+            str: Informação sobre os recursos subscritos por um cliente.
+        """
         subscribed = []
         for i in range(self.M):
             if int(client_id) in log[i]:
                 subscribed.append(i)
 
-        if option == "M":
+        if option == "M":       #Se a opção for M, devolve o número de recursos subscritos pelo cliente
             output = ' '.join([str(sub) for sub in subscribed])
             return output
 
-        if option == "K":
+        if option == "K":       #Se a opção for K, devolve o número de subscrições disponíveis para o cliente
             return str(self.K - len(subscribed))
 
 
     def statis(self, option, resource_id = None):
+        """Devolve informações sobre um ou todos os recursos.
+
+        Args:
+            option (str): Opção de informação.
+            resource_id (int): Identificador do recurso.
+
+        Returns:
+            str: Informação sobre os recursos.
+        """
         if resource_id != None:
             subscribers = 0
             if resource_id in log.keys():
                 for i in log[resource_id]:
                     subscribers += 1
 
-        if option == "L":
+        if option == "L":       #Se a opção for L, devolve o número de subscrições ativas para um dado recurso
             return str(subscribers)
 
-        if option == "ALL":
+        if option == "ALL":       #Se a opção for ALL, devolve a representação textual de todos os recursos
             return self.__repr__()
 
 
     def __repr__(self):
         output = ""
         for rec in self.resources:
+            print(self.resources)
             recurso = resource(rec)
             output += recurso.__repr__() + "\n"
         return output
+    
 ###############################################################################
 
 # código do programa principal 
 
-sock = utils.create_tcp_server_socket(HOST, PORT, 1000)
-pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))
+sock = utils.create_tcp_server_socket(HOST, PORT, 1000)       #cria um socket TCP
+pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))       #cria uma pool de recursos
 
 
 try:
     while True:
-        print("log: ", log)
-        print("time_limits: ", pool.time_limits, "\n")
+        #print("log: ", log) #para debug
+        #print("time_limits: ", pool.time_limits, "\n") #para debug
 
         pool.clear_expired_subs()
 
@@ -177,12 +281,10 @@ try:
         print('Ligado a %s no porto %s' % (HOST,PORT), "\n")
 
         received = conn_sock.recv(1024).decode()
+        print("Comando > ", received, "\n")
         received = received.split(" ")
-        print("received: ", received)
-
-        
-
-        if received[0] == "SUBSCR": #está a funcionar
+            
+        if received[0] == "SUBSCR":
             arguments = received[1:]
             resource_id, client_id, time_limit = arguments
             send = pool.subscribe(int(resource_id), float(time_limit), client_id)
@@ -220,9 +322,7 @@ try:
                 send = pool.statis("ALL")
                 conn_sock.send(send.encode())
         
+        print("Resposta: ", send, "\n")
 
 finally:
     sock.close()
-
-#problemas:
-#ainda não verifiquei o funcionamento do comando statis
