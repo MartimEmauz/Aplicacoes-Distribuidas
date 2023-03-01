@@ -22,7 +22,8 @@ PORT = int(sys.argv[3])
 
 while True:
 
-    comando = str(input("comando > "))
+    comando = str(input("Comando > "))
+    print(comando)
     comando = comando.split(" ")
 
     if comando[0] == 'SUBSCR':

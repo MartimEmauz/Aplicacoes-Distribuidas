@@ -161,7 +161,6 @@ class resource_pool:
         counter = 0
         for client in log.values():
             if client_id in client:
-                print("entrou no if")
                 counter += 1
             if counter >= self.K:       #se for atingido o limite de subscrições pelo cliente, retornar "NOK"
                 return "NOK"
@@ -256,7 +255,6 @@ class resource_pool:
     def __repr__(self):
         output = ""
         for rec in self.resources:
-            print(self.resources)
             recurso = resource(rec)
             output += recurso.__repr__() + "\n"
         return output
@@ -271,58 +269,106 @@ pool = resource_pool(int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]))      
 
 try:
     while True:
-        #print("log: ", log) #para debug
-        #print("time_limits: ", pool.time_limits, "\n") #para debug
+        """ 
+        print("log: ", log) #para debug
+        print("time_limits: ", pool.time_limits) #para debug
+        """
 
-        pool.clear_expired_subs()
+
 
         (conn_sock, (HOST, PORT)) = sock.accept()
 
-        print('Ligado a %s no porto %s' % (HOST,PORT), "\n")
+        ligado = ('Ligado a %s no porto %s' % (HOST,PORT))
+        print(ligado)
+
+        pool.clear_expired_subs()
+        
+        
+        terminado = "Ligação terminada"
 
         received = conn_sock.recv(1024).decode()
-        print("Comando > ", received, "\n")
+        print("Comando > ", received)
         received = received.split(" ")
             
         if received[0] == "SUBSCR":
             arguments = received[1:]
             resource_id, client_id, time_limit = arguments
-            send = pool.subscribe(int(resource_id), float(time_limit), client_id)
+            send = ligado
+            send += "\n"
+            send += pool.subscribe(int(resource_id), float(time_limit), client_id)
+            print(pool.subscribe(int(resource_id), float(time_limit), client_id))
+            send += "\n"
+            send += terminado
+            send += "\n"
             conn_sock.send(send.encode())
 
         if received[0] == "CANCEL":
             arguments = received[1:]
             resource_id, client_id = arguments
-            send = pool.unsubscribe(int(resource_id), client_id)
+            send = ligado
+            send += "\n"
+            send += pool.unsubscribe(int(resource_id), client_id)
+            print(pool.unsubscribe(int(resource_id), client_id))
+            send += "\n"
+            send += terminado
+            send += "\n"
             conn_sock.send(send.encode())
 
         if received[0] == "STATUS":
             arguments = received[1:]
             resource_id, client_id = arguments
-            send = pool.status(int(resource_id), client_id)
+            send = ligado
+            send += "\n"
+            send += pool.status(int(resource_id), client_id)
+            print(pool.status(int(resource_id), client_id))
+            send += "\n"
+            send += terminado
+            send += "\n"
             conn_sock.send(send.encode())
 
         if received[0] == "INFOS":
             if received[1] == "M":
-                print("entrou no M")
-                send = pool.infos("M", received[2])
-                print(send)
+                send = ligado
+                send += "\n"
+                send += pool.infos("M", received[2])
+                print(pool.infos("M", received[2]))
+                send += "\n"
+                send += terminado
+                send += "\n"
                 conn_sock.send(send.encode())
 
             if received[1] == "K":
-                send = pool.infos("K", received[2])
+                send = ligado
+                send += "\n"
+                send += pool.infos("K", received[2])
+                print(pool.infos("K", received[2]))
+                send += "\n"
+                send += terminado
+                send += "\n"
                 conn_sock.send(send.encode())
 
         if received[0] == "STATIS":
             if received[1] == "L":
-                send = pool.statis("L", int(received[2]))
+                send = ligado
+                send += "\n"
+                send += pool.statis("L", int(received[2]))
+                print(pool.statis("L", int(received[2])))
+                send += "\n"
+                send += terminado
+                send += "\n"
                 conn_sock.send(send.encode())
 
             if received[1] == "ALL":
-                send = pool.statis("ALL")
+                send = ligado
+                send += "\n"
+                send += pool.statis("ALL")
+                print(pool.statis("ALL"))
+                send += "\n"
+                send += terminado
+                send += "\n"
                 conn_sock.send(send.encode())
         
-        print("Resposta: ", send, "\n")
+        print(terminado, "\n")
 
 finally:
     sock.close()
