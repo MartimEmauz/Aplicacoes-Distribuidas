@@ -1,5 +1,5 @@
 #############################
-Aplicações Distribuídas - Projeto 1 - ticker_client.py
+Aplicações Distribuídas - Projeto 1 - README.txt
 Grupo: 27
 Números de aluno: 58668 | 58621
 ############################
