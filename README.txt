@@ -5,6 +5,6 @@ Números de aluno: 58668 | 58621
 ############################
 
 
-Para obteres o log do servidor tens que executar o comando do cliente e depois fazer ctrl+C no servidor para ele “fechar” e escrever para o log
+Para obter o log do servidor tem que executar o comando do cliente e depois fazer ctrl+C no servidor para “fechar” a execução e escrever para o log
 
 
