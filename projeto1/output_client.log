@@ -1,0 +1,66 @@
+Comando > SUB 0 120
+UNKNOWN-COMMAND
+Comando > SUBSCR 5 100
+Ligado a 127.0.0.1 no porto 52322
+UNKNOWN-RESOURCE
+Ligação terminada
+
+Comando > SUBSCR 2
+MISSING-ARGUMENTS
+Comando > SUBSCR 0 500
+Ligado a 127.0.0.1 no porto 52332
+OK
+Ligação terminada
+
+Comando > SUBSCR 1 1000
+Ligado a 127.0.0.1 no porto 52348
+OK
+Ligação terminada
+
+Comando > STATUS 0
+Ligado a 127.0.0.1 no porto 52362
+SUBSCRIBED
+Ligação terminada
+
+Comando > SUBSCR 0 500
+Ligado a 127.0.0.1 no porto 52366
+OK
+Ligação terminada
+
+Comando > STATUS 0
+Ligado a 127.0.0.1 no porto 52380
+SUBSCRIBED
+Ligação terminada
+
+Comando > STATUS 1
+Ligado a 127.0.0.1 no porto 52396
+SUBSCRIBED
+Ligação terminada
+
+Comando > SUBSCR 2 10
+Ligado a 127.0.0.1 no porto 52402
+OK
+Ligação terminada
+
+Comando > SLEEP 15
+Comando > STATUS 2
+Ligado a 127.0.0.1 no porto 54768
+UNSUBSCRIBED
+Ligação terminada
+
+Comando > CANCEL 2
+Ligado a 127.0.0.1 no porto 54780
+NOK
+Ligação terminada
+
+Comando > CANCEL 5
+Ligado a 127.0.0.1 no porto 54786
+UNKNOWN-RESOURCE
+Ligação terminada
+
+Comando > SUBSCR 3 1000
+Ligado a 127.0.0.1 no porto 54792
+OK
+Ligação terminada
+
+Comando > INFOS M
