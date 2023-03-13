@@ -22,13 +22,13 @@ HOST = sys.argv[2]
 PORT = int(sys.argv[3])
 
 comandos = {
-    'SUBSCR': '10',
-    'CANCEL': '20',
-    'STATUS': '30',
-    'INFOS M': '40',
-    'INFOS K': '40',
-    'STATIS L': '60',
-    'STATIS ALL': '70',
+    'SUBSCR': 10,
+    'CANCEL': 20,
+    'STATUS': 30,
+    'INFOS M': 40,
+    'INFOS K': 50,
+    'STATIS L': 60,
+    'STATIS ALL': 70,
 }
 
 while True:
@@ -46,7 +46,7 @@ while True:
             connection.connect()
             comando[0] = comandos[comando[0]]
             comando.append(client_id)
-            connection.send_receive(pickle.dumps(comando, -1))
+            connection.send_receive(pickle.dumps([int(x) for x in comando], -1))
             connection.close()
 
     elif comando[0] == 'CANCEL':
@@ -58,7 +58,7 @@ while True:
             connection.connect()
             comando[0] = comandos[comando[0]]
             comando.append(client_id)
-            resposta = connection.send_receive(pickle.dumps(comando, -1))
+            resposta = connection.send_receive(pickle.dumps([int(x) for x in comando], -1))
             connection.close()
 
     elif comando[0] == 'STATUS':
@@ -70,7 +70,7 @@ while True:
             connection.connect()
             comando[0] = comandos[comando[0]]
             comando.append(client_id)
-            resposta = connection.send_receive(pickle.dumps(comando, -1))
+            resposta = connection.send_receive(pickle.dumps([int(x) for x in comando], -1))
             connection.close()
 
     elif comando[0] == 'INFOS' and comando[1] == 'M':
@@ -81,7 +81,7 @@ while True:
         connection.connect()
         comando = [comandos[" ".join(comando[0:2])]]
         comando.append(client_id)
-        resposta = connection.send_receive(pickle.dumps(comando, -1))
+        resposta = connection.send_receive(pickle.dumps([int(x) for x in comando], -1))
         connection.close()
 
     elif comando[0] == 'INFOS' and comando[1] == 'K':
@@ -92,7 +92,7 @@ while True:
         connection.connect()
         comando = [comandos[" ".join(comando[0:2])]]
         comando.append(client_id)
-        resposta = connection.send_receive(pickle.dumps(comando, -1))
+        resposta = connection.send_receive(pickle.dumps([int(x) for x in comando], -1))
         connection.close()
 
     elif comando[0] == 'STATIS' and comando[1] == 'L':
@@ -101,9 +101,9 @@ while True:
         else:
             connection = server_connection(HOST, PORT)
             connection.connect()
-            comando = [comandos[" ".join(comando[0:2])]]
-            comando + [comando[2]]
-            resposta = connection.send_receive(pickle.dumps(comando, -1))
+            newComando = [comandos[" ".join(comando[0:2])]]
+            newComando.append(comando[2])
+            resposta = connection.send_receive(pickle.dumps([int(x) for x in newComando], -1))
             connection.close()
 
     elif comando[0] == 'STATIS' and comando[1] == 'ALL':
@@ -112,7 +112,7 @@ while True:
         connection = server_connection(HOST, PORT)
         connection.connect()
         comando = [comandos[" ".join(comando[0:2])]]
-        resposta = connection.send_receive(pickle.dumps(comando, -1))
+        resposta = connection.send_receive(pickle.dumps([int(x) for x in comando], -1))
         connection.close()
     elif comando[0] == 'SLEEP':
         time.sleep(int(comando[1]))

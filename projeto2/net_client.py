@@ -40,7 +40,6 @@ class server_connection:
         """
         self.sock.sendall(data)
         resposta = self.sock.recv(1024)
-        print(resposta)
         print(pickle.loads(resposta))
     
     def close(self):
