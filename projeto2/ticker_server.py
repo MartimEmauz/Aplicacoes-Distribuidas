@@ -290,7 +290,7 @@ try:
 
         terminado = "Ligação terminada"
 
-        received = pickle.loads(conn_sock.recv(1024))
+        received = pickle.loads(utils.receive_all(conn_sock, 1024))
         ligado = [int(received[0])+1]
         print("Comando > ", received)
 

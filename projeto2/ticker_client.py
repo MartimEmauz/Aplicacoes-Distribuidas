@@ -29,4 +29,3 @@ while True:
     print(comando)
     comando = comando.split(" ")
     stub.comando(comando)
-

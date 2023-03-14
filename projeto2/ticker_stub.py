@@ -29,6 +29,7 @@ class TickerStub:
         # Envia o comando para o servidor
         # Retorna a resposta do servidor
         connection = self.conn_sock
+        self.connect()
         if comando[0] == 'SUBSCR':
             if len(comando) <= 2:
                 return "MISSING-ARGUMENTS"
