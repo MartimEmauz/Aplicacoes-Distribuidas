@@ -72,6 +72,9 @@ def receive_all(socket, length):
 
     data = b''
     while len(data) < length:
-        data += socket.recv(length - len(data))
-
+        packet = socket.recv(length - len(data))
+        print('packet', packet)
+        if not packet:
+            raise EOFError("Incomplete data received")
+        data += packet
     return data

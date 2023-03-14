@@ -37,6 +37,8 @@ class TickerStub:
             else:
                 comando[0] = self.comandos[comando[0]]
                 comando.append(self.client_id)
+                connection.send_receive(str(len(pickle.dumps(
+                    [int(x) for x in comando], -1))).encode())
                 connection.send_receive(pickle.dumps(
                     [int(x) for x in comando], -1))
 

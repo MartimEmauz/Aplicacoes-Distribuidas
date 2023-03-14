@@ -290,7 +290,11 @@ try:
 
         terminado = "Ligação terminada"
 
-        received = pickle.loads(utils.receive_all(conn_sock, 1024))
+        size = int(conn_sock.recv(1024).decode())
+        print('tamanho', size)
+
+        received = pickle.loads(utils.receive_all(conn_sock, size))
+        print('recebido',received)
         ligado = [int(received[0])+1]
         print("Comando > ", received)
 
@@ -355,3 +359,7 @@ try:
 
 finally:
     sock.close()
+
+
+#TESTES
+#python3 ticker_server.py localhost 9999 4 3 100

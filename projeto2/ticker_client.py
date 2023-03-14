@@ -29,3 +29,6 @@ while True:
     print(comando)
     comando = comando.split(" ")
     stub.comando(comando)
+
+#TESTES
+#python3 ticker_client.py 1 localhost 9999
